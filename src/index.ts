@@ -1,8 +1,14 @@
-import { createYoga, createSchema } from 'graphql-yoga';
+import { createYoga, createSchema, createPubSub } from 'graphql-yoga';
 import { createServer } from 'http';
-import { typeDefs } from './schema.js';
-import { resolvers } from './resolvers.js';
+import { resolvers } from './resolvers/index.js';
 import { db } from './db.js';
+import fs from 'fs';
+import path from 'path';
+
+const pubSub = createPubSub();
+
+const schemaFilePath = path.join(process.cwd(), 'src', 'schema', 'schema.graphql');
+const typeDefs = fs.readFileSync(schemaFilePath, 'utf-8');
 
 const schema = createSchema({
   typeDefs,
@@ -13,6 +19,7 @@ const yoga = createYoga({
   schema,
   context: {
     db,
+    pubSub
   },
 });
 
