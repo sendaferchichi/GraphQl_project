@@ -1,7 +1,11 @@
-import { Cv as CvType, Skill as SkillType } from '../db.js';
+import type { GraphQLContext } from '../types.js';
+
+type SkillParent = {
+  id: string;
+};
 
 export const Skill = {
-  cvs: (parent: SkillType, args: any, { db }: any, info: any) => {
-    return db.cvs.filter((c: CvType) => c.skillIds.includes(parent.id));
+  cvs: async (parent: SkillParent, _args: unknown, { prisma }: GraphQLContext) => {
+    return prisma.skill.findUnique({ where: { id: parent.id } }).cvs();
   },
 };

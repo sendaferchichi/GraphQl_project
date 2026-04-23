@@ -1,10 +1,17 @@
-import { Cv } from '../db.js';
+import type { GraphQLContext } from '../types.js';
 
 export const Query = {
-  getAllCvs: (parent: any, args: any, { db }: any, info: any) => db.cvs,
-  getCvById: (parent: any, { id }: { id: string }, { db }: any, info: any) => {
-    const cv = db.cvs.find((c: Cv) => c.id === id);
-    if (!cv) throw new Error(`CV with id ${id} not found`);
-    return cv;
+  getAllCvs: async (_parent: unknown, _args: unknown, { prisma }: GraphQLContext) => {
+    const cvs = await prisma.cv.findMany({
+      distinct: ['id'], // Ensure unique CVs by ID
+      include: {
+        owner: true, // Include owner details
+        skills: true, // Include skills
+      },
+    });
+    return cvs;
+  },
+  getCvById: async (_parent: unknown, { id }: { id: string }, { prisma }: GraphQLContext) => {
+    return prisma.cv.findUnique({ where: { id } });
   },
 };

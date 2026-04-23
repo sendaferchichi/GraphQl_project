@@ -1,7 +1,7 @@
 import { createYoga, createSchema, createPubSub } from 'graphql-yoga';
 import { createServer } from 'http';
 import { resolvers } from './resolvers/index.js';
-import { db } from './db.js';
+import { prisma } from './prisma.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -18,7 +18,7 @@ const schema = createSchema({
 const yoga = createYoga({
   schema,
   context: {
-    db,
+    prisma,
     pubSub
   },
 });
