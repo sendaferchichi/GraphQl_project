@@ -1,4 +1,4 @@
-import { Prisma, type Cv } from '@prisma/client';
+import { Prisma, type Cv, UserRole } from '@prisma/client';
 import type { GraphQLContext } from '../types.js';
 
 type CreateCvInput = {
@@ -108,6 +108,112 @@ export const Mutation = {
 
     const deletedCv = await prisma.cv.delete({ where: { id } });
     await pubSub.publish('cvModified', { mutation: 'DELETED', data: deletedCv });
+    return true;
+  },
+
+  createUser: async (
+    _parent: unknown,
+    { input }: { input: { name: string; email: string; role?: UserRole } },
+    { prisma }: GraphQLContext,
+  ) => {
+    const taken = await prisma.user.findUnique({ where: { email: input.email } });
+    if (taken) {
+      throw new Error(`Email ${input.email} is already in use`);
+    }
+    return prisma.user.create({
+      data: {
+        name: input.name,
+        email: input.email,
+        role: input.role ?? UserRole.USER,
+      },
+    });
+  },
+
+  updateUser: async (
+    _parent: unknown,
+    {
+      input,
+    }: {
+      input: { id: string; name?: string; email?: string; role?: UserRole };
+    },
+    { prisma }: GraphQLContext,
+  ) => {
+    const user = await prisma.user.findUnique({ where: { id: input.id } });
+    if (!user) throw new Error(`User with id ${input.id} not found`);
+
+    if (input.email && input.email !== user.email) {
+      const clash = await prisma.user.findUnique({ where: { email: input.email } });
+      if (clash) throw new Error(`Email ${input.email} is already in use`);
+    }
+
+    return prisma.user.update({
+      where: { id: input.id },
+      data: {
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.email !== undefined && { email: input.email }),
+        ...(input.role !== undefined && { role: input.role }),
+      },
+    });
+  },
+
+  deleteUser: async (
+    _parent: unknown,
+    { id }: { id: string },
+    { prisma }: GraphQLContext,
+  ) => {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { _count: { select: { cvs: true } } },
+    });
+    if (!user) throw new Error(`User with id ${id} not found`);
+
+    if (user._count.cvs > 0) {
+      throw new Error(
+        `Cannot delete user ${id}: they still own ${user._count.cvs} CV(s).`,
+      );
+    }
+
+    await prisma.user.delete({ where: { id } });
+    return true;
+  },
+
+  createSkill: async (
+    _parent: unknown,
+    { input }: { input: { designation: string } },
+    { prisma }: GraphQLContext,
+  ) => {
+    const exists = await prisma.skill.findUnique({ where: { designation: input.designation } });
+    if (exists) throw new Error(`Skill "${input.designation}" already exists`);
+    return prisma.skill.create({ data: { designation: input.designation } });
+  },
+
+  updateSkill: async (
+    _parent: unknown,
+    { input }: { input: { id: string; designation: string } },
+    { prisma }: GraphQLContext,
+  ) => {
+    const skill = await prisma.skill.findUnique({ where: { id: input.id } });
+    if (!skill) throw new Error(`Skill with id ${input.id} not found`);
+
+    if (input.designation !== skill.designation) {
+      const clash = await prisma.skill.findUnique({ where: { designation: input.designation } });
+      if (clash) throw new Error(`Skill "${input.designation}" already exists`);
+    }
+
+    return prisma.skill.update({
+      where: { id: input.id },
+      data: { designation: input.designation },
+    });
+  },
+
+  deleteSkill: async (
+    _parent: unknown,
+    { id }: { id: string },
+    { prisma }: GraphQLContext,
+  ) => {
+    const skill = await prisma.skill.findUnique({ where: { id } });
+    if (!skill) throw new Error(`Skill with id ${id} not found`);
+    await prisma.skill.delete({ where: { id } });
     return true;
   },
 };

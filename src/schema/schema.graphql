@@ -3,6 +3,12 @@ enum UserRole {
   ADMIN
 }
 
+enum MutationType {
+  CREATED
+  UPDATED
+  DELETED
+}
+
 type User {
   id: ID!
   name: String!
@@ -26,9 +32,34 @@ type Skill {
   cvs: [Cv!]!
 }
 
-type Query {
-  getAllCvs: [Cv!]!
-  getCvById(id: ID!): Cv
+type CvPage {
+  items: [Cv!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+type UserPage {
+  items: [User!]!
+  total: Int!
+  hasMore: Boolean!
+}
+
+type CvNotification {
+  mutation: MutationType!
+  data: Cv!
+}
+
+input CvFilterInput {
+  name: String
+  job: String
+  userId: ID
+  skillId: ID
+}
+
+input UserFilterInput {
+  name: String
+  email: String
+  role: UserRole
 }
 
 input CreateCvInput {
@@ -48,23 +79,49 @@ input UpdateCvInput {
   skillIds: [ID!]
 }
 
+input CreateUserInput {
+  name: String!
+  email: String!
+  role: UserRole
+}
+
+input UpdateUserInput {
+  id: ID!
+  name: String
+  email: String
+  role: UserRole
+}
+
+input CreateSkillInput {
+  designation: String!
+}
+
+input UpdateSkillInput {
+  id: ID!
+  designation: String!
+}
+
+type Query {
+  getAllCvs(filter: CvFilterInput, skip: Int, take: Int): CvPage!
+  getCvById(id: ID!): Cv
+  getUsers(filter: UserFilterInput, skip: Int, take: Int): UserPage!
+  getUserById(id: ID!): User
+  getSkills: [Skill!]!
+  getSkillById(id: ID!): Skill
+}
+
 type Mutation {
   createCv(input: CreateCvInput!): Cv!
   updateCv(input: UpdateCvInput!): Cv!
   deleteCv(id: ID!): Boolean!
+  createUser(input: CreateUserInput!): User!
+  updateUser(input: UpdateUserInput!): User!
+  deleteUser(id: ID!): Boolean!
+  createSkill(input: CreateSkillInput!): Skill!
+  updateSkill(input: UpdateSkillInput!): Skill!
+  deleteSkill(id: ID!): Boolean!
 }
 
 type Subscription {
   cvModified: CvNotification!
-}
-
-type CvNotification {
-  mutation: MutationType!
-  data: Cv!
-}
-
-enum MutationType {
-  CREATED
-  UPDATED
-  DELETED
 }

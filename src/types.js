@@ -1,1 +1,0 @@
-Created the `types.js` file with the `GraphQLContext` type definition, resolving the import error in the resolver.
