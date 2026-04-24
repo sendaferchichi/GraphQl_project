@@ -1,10 +1,14 @@
-import { Cv as CvType, User as UserType, Skill as SkillType } from '../db.js';
+import type { GraphQLContext } from '../types.js';
+
+type CvParent = {
+  id: string;
+};
 
 export const Cv = {
-  owner: (parent: CvType, args: any, { db }: any, info: any) => {
-    return db.users.find((u: UserType) => u.id === parent.userId);
+  owner: async (parent: CvParent, _args: unknown, { prisma }: GraphQLContext) => {
+    return prisma.cv.findUnique({ where: { id: parent.id } }).owner();
   },
-  skills: (parent: CvType, args: any, { db }: any, info: any) => {
-    return db.skills.filter((s: SkillType) => parent.skillIds.includes(s.id));
+  skills: async (parent: CvParent, _args: unknown, { prisma }: GraphQLContext) => {
+    return prisma.cv.findUnique({ where: { id: parent.id } }).skills();
   },
 };

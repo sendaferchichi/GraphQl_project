@@ -1,7 +1,11 @@
-import { Cv as CvType, User as UserType } from '../db.js';
+import type { GraphQLContext } from '../types.js';
+
+type UserParent = {
+  id: string;
+};
 
 export const User = {
-  cvs: (parent: UserType, args: any, { db }: any, info: any) => {
-    return db.cvs.filter((c: CvType) => c.userId === parent.id);
+  cvs: async (parent: UserParent, _args: unknown, { prisma }: GraphQLContext) => {
+    return prisma.user.findUnique({ where: { id: parent.id } }).cvs();
   },
 };

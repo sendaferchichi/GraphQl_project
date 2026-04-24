@@ -1,6 +1,15 @@
+import type { GraphQLContext } from '../types.js';
+
+type CvNotificationPayload = {
+  mutation: 'CREATED' | 'UPDATED' | 'DELETED';
+  data: {
+    id: string;
+  };
+};
+
 export const Subscription = {
   cvModified: {
-    subscribe: (parent: any, args: any, { pubSub }: any, info: any) => pubSub.subscribe('cvModified'),
-    resolve: (payload: any) => payload,
+    subscribe: (_parent: unknown, _args: unknown, { pubSub }: GraphQLContext) => pubSub.subscribe('cvModified'),
+    resolve: (payload: CvNotificationPayload) => payload,
   },
 };
