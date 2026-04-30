@@ -26,9 +26,27 @@ type Skill {
   cvs: [Cv!]!
 }
 
+enum CvEventType {
+  CV_CREATED
+  CV_UPDATED
+  CV_DELETED
+}
+
+type CvEvent {
+  id: ID!
+  type: CvEventType!
+  cvId: String!
+  cvName: String!
+  performedBy: String!
+  timestamp: String!
+  details: String!
+}
+
 type Query {
   getAllCvs: [Cv!]!
   getCvById(id: ID!): Cv
+  getCvHistory: [CvEvent!]!
+  getCvHistoryByCvId(cvId: ID!): [CvEvent!]!
 }
 
 input CreateCvInput {
@@ -52,10 +70,45 @@ type Mutation {
   createCv(input: CreateCvInput!): Cv!
   updateCv(input: UpdateCvInput!): Cv!
   deleteCv(id: ID!): Boolean!
+  
+  # Webhook Management
+  registerWebhook(url: String!, events: [CvEventType!]!): Webhook!
+  unregisterWebhook(id: ID!): Boolean!
+
+  # Collab Mutations
+  sendMessage(to: ID!, text: String!): ChatMessage!
+  sendDraw(to: ID!, x1: Int!, y1: Int!, x2: Int!, y2: Int!, color: String!, size: Int!): DrawEvent!
+}
+
+type Webhook {
+  id: ID!
+  url: String!
+  events: [CvEventType!]!
 }
 
 type Subscription {
   cvModified: CvNotification!
+  
+  # Collab Subscriptions (filtrées par destinataire)
+  messageAdded(targetId: ID!): ChatMessage!
+  boardUpdated(targetId: ID!): DrawEvent!
+}
+
+type ChatMessage {
+  senderId: ID!
+  senderName: String!
+  text: String!
+  timestamp: String!
+}
+
+type DrawEvent {
+  senderId: ID!
+  x1: Int!
+  y1: Int!
+  x2: Int!
+  y2: Int!
+  color: String!
+  size: Int!
 }
 
 type CvNotification {

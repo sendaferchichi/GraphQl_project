@@ -24,9 +24,18 @@ export interface Skill {
   designation: string;
 }
 
+export interface Webhook {
+  id: string;
+  url: string;
+  events: string[]; // List of event types to subscribe to (e.g., CV_CREATED)
+}
+
 export const users: User[] = [
   { id: '1', name: 'Aymen', email: 'aymen@gmail.com', role: UserRole.ADMIN },
   { id: '2', name: 'John Doe', email: 'john@example.com', role: UserRole.USER },
+  { id: '3', name: 'Jane Smith', email: 'jane@example.com', role: UserRole.USER },
+  { id: '4', name: 'test', email: 'test@example.com', role: UserRole.USER }
+
 ];
 
 export const skills: Skill[] = [
@@ -54,8 +63,11 @@ export const cvs: Cv[] = [
   },
 ];
 
+export const webhooks: Webhook[] = [];
+
 export const db = {
   users,
   cvs,
   skills,
+  webhooks,
 };
